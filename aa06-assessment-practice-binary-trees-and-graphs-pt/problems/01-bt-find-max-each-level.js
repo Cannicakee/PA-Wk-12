@@ -1,5 +1,5 @@
 class TreeNode {
-  constructor(value, left, right) {
+  constructor(value, left = null, right = null) {
     this.value = value;
     this.left = left;
     this.right = right;
@@ -24,28 +24,22 @@ class TreeNode {
 // Expected Output -> [ 5, 7, 3, 9, 4 ]
 
 function findMaxEachLevel(root) {
-  const stack = [];
+  if (!root) return [];
+
+  const queue = [{ node: root, level: 0 }];
   const maxes = [];
 
-  root.level = 0;
+  while (queue.length > 0) {
+    const { node, level } = queue.shift();
 
-  while (stack.length > 0) {
-      const curr = stack.pop();
+    if (maxes[level] !== undefined) {
+      maxes[level] = Math.max(maxes[level], node.value);
+    } else {
+      maxes[level] = node.value;
+    }
 
-      if (maxes[curr.level]) {
-          maxes[curr.level] = Math.min(curr.value, maxes[curr.level]);
-      } else {
-          maxes.push(curr.value);
-      }
-
-      if (curr.left && curr.left >= curr.right) {
-          curr.left.level = curr.level + 1;
-          stack.unshift(curr.left);
-      }
-      if (curr.right && curr.right >= curr.left) {
-          curr.right.level = curr.level + 1;
-          stack.unshift(curr.right);
-      }
+    if (node.left) queue.push({ node: node.left, level: level + 1 });
+    if (node.right) queue.push({ node: node.right, level: level + 1 });
   }
 
   return maxes;

@@ -22,14 +22,14 @@ function findStarts(matrix) {
     }
 
     // Bottom Row
-    for (let i = 0; i < matrix[matrix.length-1].length; i++) {
-        if (matrix[matrix.length-1][i] == 0) {
-            starts.push([matrix.length-1, i])
+    for (let i = 0; i < matrix[matrix.length - 1].length; i++) {
+        if (matrix[matrix.length - 1][i] == 0) {
+            starts.push([matrix.length - 1, i])
         }
     }
 
     // Left except first and last
-    for (let i = 1; i < matrix.length-1; i++) {
+    for (let i = 1; i < matrix.length - 1; i++) {
         if (matrix[i][0] == 0) {
             starts.push([i, 0])
         }
@@ -38,7 +38,7 @@ function findStarts(matrix) {
     // Right except first and last
     for (let i = 1; i < matrix.length - 1; i++) {
         if (matrix[i][matrix[0].length - 1] == 0) {
-            starts.push([i, matrix[0].length-1])
+            starts.push([i, matrix[0].length - 1])
         }
     }
 
@@ -46,21 +46,98 @@ function findStarts(matrix) {
 }
 
 function findNeighbors(node, matrix) {
-    // Don't forget to include diagonal neighbors!!!
+    let [nodeRow, nodeCol] = node;
+    let nodeValue = matrix[nodeRow][nodeCol];
 
-    // Your code here 
+    let [maxRows, maxCols] = [matrix.length, matrix[0].length];
+
+    let neighbors = getAllNodeNeighbors(nodeRow, nodeCol);
+    let validNeighbors = [];
+
+    neighbors.forEach((pair) => {
+        let [currRow, currCol] = pair;
+        let isValidRow = currRow >= 0 && currRow < maxRows;
+        let isValidCol = currCol >= 0 && currCol < maxCols;
+
+        if (isValidRow && isValidCol) {
+            let currNodeValue = matrix[currRow][currCol];
+            let valueDifferenceIsWithinOne = Math.abs(currNodeValue - nodeValue) <= 1;
+
+            if (valueDifferenceIsWithinOne) validNeighbors.push(pair);
+        }
+    });
+
+    return validNeighbors;
+}
+function getAllNodeNeighbors(nodeRow, nodeCol) {
+    return [
+        // top
+        [nodeRow - 1, nodeCol],
+        // bottom
+        [nodeRow + 1, nodeCol],
+        // left
+        [nodeRow, nodeCol - 1],
+        // right
+        [nodeRow, nodeCol + 1],
+        // top left
+        [nodeRow - 1, nodeCol - 1],
+        // top right
+        [nodeRow - 1, nodeCol + 1],
+        // bottom left
+        [nodeRow + 1, nodeCol - 1],
+        // bottom right
+        [nodeRow + 1, nodeCol + 1],
+    ];
 }
 
 function pathTraversal(node, matrix, visited, peak) {
-    // Your code here 
+    let queue = [node];
+
+    while (queue.length > 0) {
+        // remove first node from stack
+        let currNode = queue.shift();
+
+        // values to help with comparison
+        let pathStr = currNode.join(",");
+        let [nodeRow, nodeCol] = currNode;
+        let nodeValue = matrix[nodeRow][nodeCol];
+        visited.add(pathStr);
+
+        // if the current node's value reaches the peak
+        // we have a "true" mountain hike
+        if (nodeValue === peak) {
+            return true;
+        }
+
+        // use findNeighbors to get valid neighbors of given
+        // node
+        let neighbors = findNeighbors(currNode, matrix);
+        neighbors.forEach((pair) => {
+            let pairStr = pair.join(",");
+
+            if (!visited.has(pairStr)) {
+                visited.add(pairStr);
+                queue.push(pair);
+            }
+        });
+    }
+    return false;
 }
 
 function identifyPath(mountain) {
-    // Find the peak
-    // Find the start
+    let peak = findPeak(mountain);
+    let startNodes = findStarts(mountain);
 
-    // Traverse from the starts and try to get to the top
-    // Your code here 
+    for (let node of startNodes) {
+        const visited = new Set();
+        let validPath = pathTraversal(node, mountain, visited, peak);
+
+        if (validPath) {
+            return node;
+        }
+    }
+
+    return false;
 }
 
 // Uncomment for local testing
